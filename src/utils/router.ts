@@ -123,6 +123,12 @@ const getUseModel = async (
     config.Router.background
   ) {
     log("Using background model for ", req.body.model);
+    if (config.Router.background.includes("glm")) {
+      // append /nothink to the last message
+      log("glm detected. using /nothink");
+      req.body.messages[req.body.messages.length - 1].content += " /nothink";
+    }
+
     return config.Router.background;
   }
   // if exits thinking, use the think model
@@ -130,11 +136,11 @@ const getUseModel = async (
     log("Using think model for ", req.body.thinking);
     return config.Router.think;
   }
-  if (
+
     Array.isArray(req.body.tools) &&
     req.body.tools.some((tool: any) => tool.type?.startsWith("web_search")) &&
     config.Router.webSearch
-  ) {
+    {
     return config.Router.webSearch;
   }
   return config.Router!.default;
@@ -142,6 +148,11 @@ const getUseModel = async (
 
 export const router = async (req: any, _res: any, context: any) => {
   const { config, event } = context;
+  
+  // Debug logging: Complete incoming request body before any transformation
+  if (config.LOG_LEVEL === 'debug') {
+    log("**CCR** DEBUG - Incoming request body:", JSON.stringify(req.body, null, 2));
+  }
   // Parse sessionId from metadata.user_id
   if (req.body.metadata?.user_id) {
     const parts = req.body.metadata.user_id.split("_session_");
