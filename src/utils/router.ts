@@ -136,10 +136,10 @@ const getUseModel = async (
     log("Using think model for ", req.body.thinking);
     return config.Router.think;
   }
-
-    Array.isArray(req.body.tools) &&
+  
+  if(Array.isArray(req.body.tools) &&
     req.body.tools.some((tool: any) => tool.type?.startsWith("web_search")) &&
-    config.Router.webSearch
+    config.Router.webSearch)
     {
     return config.Router.webSearch;
   }
