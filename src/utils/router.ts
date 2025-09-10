@@ -123,10 +123,10 @@ const getUseModel = async (
     config.Router.background
   ) {
     log("Using background model for ", req.body.model);
-    if (config.Router.background.includes("glm")) {
+    if (config.Router.background.includes("glm")) {           //JB
       // append /nothink to the last message
-      log("glm detected. using /nothink");
-      req.body.messages[req.body.messages.length - 1].content += " /nothink";
+      log("glm detected. using /nothink");                    //JB
+      req.body.messages[req.body.messages.length - 1].content += " /nothink"; //JB
     }
 
     return config.Router.background;
@@ -149,10 +149,6 @@ const getUseModel = async (
 export const router = async (req: any, _res: any, context: any) => {
   const { config, event } = context;
   
-  // Debug logging: Complete incoming request body before any transformation
-  if (config.LOG_LEVEL === 'debug') {
-    log("**CCR** DEBUG - Incoming request body:", JSON.stringify(req.body, null, 2));
-  }
   // Parse sessionId from metadata.user_id
   if (req.body.metadata?.user_id) {
     const parts = req.body.metadata.user_id.split("_session_");

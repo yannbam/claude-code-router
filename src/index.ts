@@ -19,6 +19,7 @@ import { sessionUsageCache } from "./utils/cache";
 import {SSEParserTransform} from "./utils/SSEParser.transform";
 import {SSESerializerTransform} from "./utils/SSESerializer.transform";
 import {rewriteStream} from "./utils/rewriteStream";
+import {StreamLoggerTransform} from "./utils/StreamLogger.transform";
 import JSON5 from "json5";
 import { IAgent } from "./agents/type";
 import agentsManager from "./agents";
@@ -151,6 +152,10 @@ async function run(options: RunOptions = {}) {
   });
   server.addHook("preHandler", async (req, reply) => {
     if (req.url.startsWith("/v1/messages")) {
+      req.log.trace({
+        originalRequest: req.body,
+        msg: "*JB* Original unmodified request from Claude Code"
+      });  //JB
       const useAgents = []
 
       for (const agent of agentsManager.getAllAgents()) {
@@ -319,7 +324,7 @@ async function run(options: RunOptions = {}) {
               // 其他错误仍然抛出
               throw error;
             }
-          }).pipeThrough(new SSESerializerTransform()))
+          }).pipeThrough(new SSESerializerTransform()).pipeThrough(new StreamLoggerTransform(req.log, 'agent')))
         }
 
         const [originalStream, clonedStream] = payload.tee();
@@ -351,7 +356,9 @@ async function run(options: RunOptions = {}) {
           }
         }
         read(clonedStream);
-        return done(null, originalStream)
+        // *JB* Add logging transform to regular streams before sending to Claude Code
+        const loggedStream = originalStream.pipeThrough(new StreamLoggerTransform(req.log, 'regular'));
+        return done(null, loggedStream)
       }
       sessionUsageCache.put(req.sessionId, payload.usage);
     }
@@ -362,6 +369,23 @@ async function run(options: RunOptions = {}) {
   });
   server.addHook("onSend", async (req, reply, payload) => {
     console.log('主应用onSend')
+    if (req.url.startsWith("/v1/messages")) {
+      // *JB* Stream detection and logging
+      console.log("*JB* CONSOLE - payload type:", typeof payload, "constructor:", payload?.constructor?.name)  //JB
+      
+      if (payload instanceof ReadableStream) {
+        req.log.trace({
+          responseType: "ReadableStream", 
+          msg: "*JB* Final response is streaming - content not logged"
+        })  //JB
+      } else {
+        req.log.trace({
+          finalResponse: payload,
+          responseType: typeof payload,
+          msg: "*JB* Final processed response going to Claude Code"
+        })  //JB
+      }
+    }
     event.emit('onSend', req, reply, payload);
     return payload;
   })
