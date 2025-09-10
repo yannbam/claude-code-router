@@ -23,6 +23,16 @@ export class StreamLoggerTransform extends TransformStream<any, any> {
                             chunkContent: chunk,
                             msg: `*JB* Fully processed streaming chunk #${this.loggedChunks} (${this.streamType})`
                         });
+                    } else if (chunk instanceof Uint8Array) {
+                        // Decode Uint8Array to readable text
+                        const decodedText = new TextDecoder().decode(chunk);
+                        this.logger.trace({
+                            chunkNumber: this.loggedChunks,
+                            streamType: this.streamType,
+                            chunkType: 'Uint8Array',
+                            chunkContent: decodedText,
+                            msg: `*JB* Fully processed streaming chunk #${this.loggedChunks} (${this.streamType}) - DECODED`
+                        });
                     } else if (typeof chunk === 'object') {
                         // For parsed SSE events (agent streams) 
                         this.logger.trace({
