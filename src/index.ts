@@ -376,7 +376,7 @@ async function run(options: RunOptions = {}) {
       if (payload instanceof ReadableStream) {
         req.log.trace({
           responseType: "ReadableStream", 
-          msg: "*JB* Final response is streaming - content not logged"
+          msg: "*JB* Final processed response start streaming out"
         })  //JB
       } else {
         req.log.trace({

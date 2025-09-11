@@ -18,8 +18,7 @@ export class StreamLoggerTransform extends TransformStream<any, any> {
                     // Base log object with common fields
                     const logEntry = {
                         chunkNumber: this.loggedChunks,
-                        streamType: this.streamType,
-                        msg: `*JB* ${this.messagePrefix} streaming chunk #${this.loggedChunks}`
+                        streamType: this.streamType
                     };
 
                     if (typeof chunk === 'string') {
@@ -50,6 +49,8 @@ export class StreamLoggerTransform extends TransformStream<any, any> {
                             chunkContent: chunk
                         });
                     }
+
+                    Object.assign(logEntry, {msg: `*JB* ${this.messagePrefix} streaming chunk #${this.loggedChunks}`});
 
                     this.logger.trace(logEntry);
                 }
