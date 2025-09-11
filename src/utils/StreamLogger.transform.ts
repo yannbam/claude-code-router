@@ -5,55 +5,53 @@
 export class StreamLoggerTransform extends TransformStream<any, any> {
     private logger: any;
     private streamType: string;
+    private messagePrefix: string;
     private loggedChunks: number = 0;
 
-    constructor(logger: any, streamType: 'agent' | 'regular' = 'regular') {
+    constructor(logger: any, streamType: 'agent' | 'regular' = 'regular', messagePrefix: string = '') {
         super({
             transform: (chunk: any, controller) => {
                 this.loggedChunks++;
                 
                 // Log the chunk content with JB marker
                 if (this.logger) {
+                    // Base log object with common fields
+                    const logEntry = {
+                        chunkNumber: this.loggedChunks,
+                        streamType: this.streamType,
+                        msg: `*JB* ${this.messagePrefix} streaming chunk #${this.loggedChunks}`
+                    };
+
                     if (typeof chunk === 'string') {
                         // For raw string chunks (regular streams)
-                        this.logger.trace({
-                            chunkNumber: this.loggedChunks,
-                            streamType: this.streamType,
+                        Object.assign(logEntry, {
                             chunkType: 'string',
-                            chunkContent: chunk,
-                            msg: `*JB* Fully processed streaming chunk #${this.loggedChunks} (${this.streamType})`
+                            chunkContent: chunk
                         });
                     } else if (chunk instanceof Uint8Array) {
                         // Decode Uint8Array to readable text
                         const decodedText = new TextDecoder().decode(chunk);
-                        this.logger.trace({
-                            chunkNumber: this.loggedChunks,
-                            streamType: this.streamType,
+                        Object.assign(logEntry, {
                             chunkType: 'Uint8Array',
-                            chunkContent: decodedText,
-                            msg: `*JB* Fully processed streaming chunk #${this.loggedChunks} (${this.streamType}) - DECODED`
+                            chunkContent: decodedText
                         });
                     } else if (typeof chunk === 'object') {
                         // For parsed SSE events (agent streams) 
-                        this.logger.trace({
-                            chunkNumber: this.loggedChunks,
-                            streamType: this.streamType,
+                        Object.assign(logEntry, {
                             chunkType: 'object',
                             event: chunk.event,
                             data: chunk.data,
-                            chunkContent: chunk,
-                            msg: `*JB* Fully processed streaming chunk #${this.loggedChunks} (${this.streamType})`
+                            chunkContent: chunk
                         });
                     } else {
                         // For other chunk types
-                        this.logger.trace({
-                            chunkNumber: this.loggedChunks,
-                            streamType: this.streamType,
+                        Object.assign(logEntry, {
                             chunkType: typeof chunk,
-                            chunkContent: chunk,
-                            msg: `*JB* Fully processed streaming chunk #${this.loggedChunks} (${this.streamType})`
+                            chunkContent: chunk
                         });
                     }
+
+                    this.logger.trace(logEntry);
                 }
                 
                 // Pass chunk through unchanged
@@ -73,5 +71,6 @@ export class StreamLoggerTransform extends TransformStream<any, any> {
         
         this.logger = logger;
         this.streamType = streamType;
+        this.messagePrefix = messagePrefix;
     }
 }

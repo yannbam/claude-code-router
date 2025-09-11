@@ -324,7 +324,7 @@ async function run(options: RunOptions = {}) {
               // 其他错误仍然抛出
               throw error;
             }
-          }).pipeThrough(new SSESerializerTransform()).pipeThrough(new StreamLoggerTransform(req.log, 'agent')))
+          }).pipeThrough(new SSESerializerTransform()).pipeThrough(new StreamLoggerTransform(req.log, 'agent', 'Fully processed')))
         }
 
         const [originalStream, clonedStream] = payload.tee();
@@ -357,7 +357,7 @@ async function run(options: RunOptions = {}) {
         }
         read(clonedStream);
         // *JB* Add logging transform to regular streams before sending to Claude Code
-        const loggedStream = originalStream.pipeThrough(new StreamLoggerTransform(req.log, 'regular'));
+        const loggedStream = originalStream.pipeThrough(new StreamLoggerTransform(req.log, 'regular', 'Fully processed'));
         return done(null, loggedStream)
       }
       sessionUsageCache.put(req.sessionId, payload.usage);
