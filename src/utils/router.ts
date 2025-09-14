@@ -123,6 +123,7 @@ const getUseModel = async (
     config.Router.background
   ) {
     log("Using background model for ", req.body.model);
+    // todo: make glm specific transformer
     if (config.Router.background.includes("glm")) {           //JB
       // append /nothink to the last message
       log("glm detected. using /nothink");                    //JB
