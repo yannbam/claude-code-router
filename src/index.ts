@@ -19,7 +19,7 @@ import { sessionUsageCache } from "./utils/cache";
 import {SSEParserTransform} from "./utils/SSEParser.transform";
 import {SSESerializerTransform} from "./utils/SSESerializer.transform";
 import {rewriteStream} from "./utils/rewriteStream";
-import {StreamLoggerTransform} from "./utils/StreamLogger.transform";
+import {StreamLoggerTransform} from "@musistudio/llms";
 import JSON5 from "json5";
 import { IAgent } from "./agents/type";
 import agentsManager from "./agents";
